@@ -1,0 +1,71 @@
+* Mon Apr 02 2012 Marko Saukko <sage@merproject.org> - 4.1.18
+- Added .yaml for spectacle
+
+* Fri Jul 29 2011 Carsten Munk <carsten@maemo.org> - 4.1.18
+- Disable doc generation on ARM, it sigsegvs.
+
+* Mon Jul 25 2011 Ulf Hofemeier <ulf.hofemeier@linux.intel.com> - 4.1.18
+- Added no-unused-but-set-variable to CFLAGS to build with GCC 4.6
+
+* Fri Jul 1 2011 Christophe Dumez <christophe.dumez@intel.com> - 4.1.18
+- BMC#20521: Add memorycal_delete_incidence_fix.patch to fix deletion of
+  Journals and Todos from the memory calendar
+
+* Thu Jun 23 2011 Christophe Dumez <christophe.dumez@intel.com> - 4.1.18
+- BMC#18903 Add raweventsfordate_event_duplication.patch to fix possible event
+  duplication when calling rawEventsForDate().
+
+* Fri Jun 10 2011 Christophe Dumez <christophe.dumez@intel.com> - 4.1.18
+- BMC#18560 Fix use_connman_clock.patch to make sure the zone.tab path is set
+- BMC#18560 Add fix_timezone_fallback.patch to use /etc/sysconfig/clock as
+  fallback for local timezone detection when connman is not running
+
+* Tue Jun 07 2011 Christophe Dumez <christophe.dumez@intel.com> - 4.1.18
+- BMC#18560 Add use_connman_clock.patch to use Connman.Clock DBus API 
+  instead of timed to detect the local timezone.
+- Add build dependency on QtDBus
+- Add run-time dependency on connman >= 0.69.5
+- Drop build dependency on timed-devel
+
+* Tue Mar 01 2011 Bernd Wachter <ext-bernd.wachter@nokia.com> - 4.1.18
+- Update version, fixing BMC#6050
+
+* Thu Jan 27 2011 Bernd Wachter <ext-bernd.wachter@nokia.com> - 4.1.13
+- Update version, fixing BMC#6061
+
+* Wed Dec 08 2010 Bernd Wachter <ext-bernd.wachter@nokia.com> - 4.1.8
+- Update to 4.1.8
+- Fixes: BMC#6050
+
+* Fri Nov 12 2010 Bernd Wachter <ext-bernd.wachter@nokia.com> - 4.1.1
+- Fix breakage introduced with libical update in request 8826
+- Fixes: BMC#6227 importing/exporting iCalendar 2.0: adding time to UNTIL changes semantic
+- Implements: BMC#10002 Update package to 4.1.1
+
+* Thu Oct 21 2010 Bernd Wachter <ext-bernd.wachter@nokia.com> - 4.0.13
+- Update to latest version
+- Add correct license
+- Fix missing dependencies (BMC#8573)
+- Remove .svn directories from tarball (BMC#8617)
+
+* Mon Oct 04 2010 Fathi Boudra <fathi.boudra@nokia.com> - 4.0.5
+- Various cleanup in the packaging
+- Remove useless BuildRequires (dbus-1, meegotouch and qtopiamail)
+- Use qmake macros
+- More verbosity in %files
+
+* Thu Sep 23 2010 Bernd Wachter <ext-bernd.wachter@nokia.com> - 4.0.5
+- Fix mkcal's time zone detection. It fails zones with three slashes (BMC#6440)
+
+* Wed Aug 25 2010 Bernd Wachter <ext-bernd.wachter@nokia.com> - 4.0.5
+- Update to latest upstream version
+
+* Tue Aug 24 2010 Bernd Wachter <ext-bernd.wachter@nokia.com> - 4.0.0.5
+- Update to latest upstream
+- Enable timed support
+
+* Mon Aug 16 2010 Bernd Wachter <ext-bernd.wachter@nokia.com> - 4.0.0.4
+- Update to latest version
+
+* Wed Aug 04 2010 Bernd Wachter <ext-bernd.wachter@nokia.com> - 4.0.0
+- Initial RPM
