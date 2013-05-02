@@ -1,3 +1,6 @@
+* Thu May 02 2013 Carsten Munk <carsten.munk@jollamobile.com> - 4.10.2
+- Update to 4.10.2, new kcalcore rebase on mer-packages/kcalcore
+
 * Mon Apr 02 2012 Marko Saukko <sage@merproject.org> - 4.1.18
 - Added .yaml for spectacle
 
