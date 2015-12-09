@@ -6,7 +6,6 @@ Group:      System/Libraries
 License:    LGPLv2
 URL:        https://github.com/mer-packages/kcalcore
 Source0:    %{name}-%{version}.tar.bz2
-Source100:  kcalcore-qt5.yaml
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 BuildRequires:  pkgconfig(Qt5Core)
