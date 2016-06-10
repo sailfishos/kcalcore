@@ -837,7 +837,7 @@ class KCALCORE_EXPORT Incidence
 //@cond PRIVATE
 inline uint qHash( const QSharedPointer<KCalCore::Incidence> &key )
 {
-  return qHash<KCalCore::Incidence>( key.data() );
+  return qHash( static_cast<void*>(key.data()) );
 }
 //@endcond
 
