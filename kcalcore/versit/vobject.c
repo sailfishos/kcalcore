@@ -1147,23 +1147,12 @@ static int writeBase64(OFile *fp, unsigned char *s, unsigned long len)
     return 1;
 }
 
-/* this function really sucks.  Too basic. */
+/* this function really sucks.  Too basic. ORLY? */
 static void writeQPString(OFile *fp, const char *s, int qp)
 {
     const char *p = s;
     while (*p) {
-      if (*p == '\n') {
-        /* According to VCAL-1.0 doc, CRLF is the correct separator */
-        appendsOFile(fp,"=0D=0A=");
-        /* Continued to also add the \n below */
-      }
-      if (*p == '\r') {
-        /* NOP, handled above [our own may or may not have \rs] */
-      }
-      else if (*p == '=' && qp)
-	appendsOFile(fp,"=3D");
-      else
-	appendcOFile(fp,*p);
+      appendcOFile_(fp,*p);
       p++;
     }
 }

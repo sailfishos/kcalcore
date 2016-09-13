@@ -231,10 +231,11 @@ void KCodecs::quotedPrintableEncode(const QByteArray& in, QByteArray& out, bool 
         ++lineLength;
       }
     }
-    // If we find a line break, just let it through.
+    // If we find a line break, just don't let it through.
     else if ((useCRLF && ('\r' == c) && (i < end) && ('\n' == data[i + 1])) ||
              (!useCRLF && ('\n' == c)))
     {
+      cursor += sprintf(cursor, "=0D=0A=");
       lineLength = 0;
 
       if (useCRLF) {
