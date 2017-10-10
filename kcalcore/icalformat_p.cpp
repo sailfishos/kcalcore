@@ -2510,7 +2510,7 @@ Duration ICalFormatImpl::readICalDuration( icaldurationtype d )
   int seconds = d.hours * gSecondsPerHour;
   seconds += d.minutes * gSecondsPerMinute;
   seconds += d.seconds;
-  if ( seconds ) {
+  if ( seconds || !days ) { // Create second-type duration for 0 delay durations.
     seconds += days * gSecondsPerDay;
     if ( d.is_neg ) {
       seconds = -seconds;
