@@ -507,9 +507,11 @@ KDateTime Alarm::time() const
   } else if ( d->mParent ) {
     if ( d->mEndOffset ) {
       KDateTime dt = d->mParent->dateTime( Incidence::RoleAlarmEndOffset );
+      dt.setDateOnly(false);
       return d->mOffset.end( dt );
     } else {
       KDateTime dt = d->mParent->dateTime( Incidence::RoleAlarmStartOffset );
+      dt.setDateOnly(false);
       return d->mOffset.end( dt );
     }
   } else {
