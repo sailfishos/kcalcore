@@ -2215,7 +2215,6 @@ icaltimetype ICalFormatImpl::writeICalDate( const QDate &date )
   t.second = 0;
 
   t.is_date = 1;
-  t.is_utc = 0;
   t.zone = 0;
 
   return t;
@@ -2236,8 +2235,7 @@ icaltimetype ICalFormatImpl::writeICalDateTime( const KDateTime &datetime )
     t.minute = datetime.time().minute();
     t.second = datetime.time().second();
   }
-  t.zone = 0;   // zone is NOT set
-  t.is_utc = datetime.isUtc() ? 1 : 0;
+  t.zone = datetime.isUtc() ? icaltimezone_get_utc_timezone() : 0;
 
   // _dumpIcaltime( t );
 
@@ -2312,7 +2310,7 @@ icalproperty *ICalFormatImpl::writeICalDateTimeProperty( const icalproperty_kind
   }
 
   KTimeZone ktz;
-  if ( !t.is_utc ) {
+  if ( !icaltime_is_utc(t)) {
     ktz = dt.timeZone();
   }
 
@@ -2345,7 +2343,7 @@ KDateTime ICalFormatImpl::readICalDateTime( icalproperty *p,
 //  _dumpIcaltime( t );
 
   KDateTime::Spec timeSpec;
-  if ( t.is_utc  ||  t.zone == icaltimezone_get_utc_timezone() ) {
+  if ( icaltime_is_utc(t) ) {
     timeSpec = KDateTime::UTC;   // the time zone is UTC
     utc = false;    // no need to convert to UTC
   } else {
