@@ -953,7 +953,7 @@ DateTimeList Recurrence::timesInInterval( const KDateTime &start, const KDateTim
   int i, count;
   DateTimeList times;
   for ( i = 0, count = d->mRRules.count();  i < count;  ++i ) {
-    times += d->mRRules[i]->timesInInterval( start, end );
+    times += d->mRRules[i]->timesInInterval( start < startDateTime() ? startDateTime() : start, end );
   }
 
   // add rdatetimes that fit in the interval
