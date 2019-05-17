@@ -2008,6 +2008,11 @@ DateTimeList RecurrenceRule::Private::datesForInterval( const Constraint &interv
         // We have a valid constraint, so get all datetimes that match it andd
         // append it to all date/times of this interval
         QList<KDateTime> lstnew = merged.dateTimes( type );
+        lstnew.erase(std::remove_if(lstnew.begin(), lstnew.end(),
+                                    [this](const KDateTime &dt) {
+                                        return dt < mDateStart;
+                                    }),
+                     lstnew.end());
         lst += lstnew;
       }
     }

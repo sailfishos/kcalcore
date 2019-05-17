@@ -153,3 +153,33 @@ void TimesInIntervalTest::testSubDailyRecurrenceIntervalLimits()
   }
   QCOMPARE(expectedEventOccurrences.size(), 0);
 }
+
+//Test that the recurrence dtStart is used for calculation and not the interval start date
+void TimesInIntervalTest::testDailyRecurrenceDtStart()
+{
+  const int days = 7;
+  const KDateTime start(QDate(2013, 03, 10), QTime(0, 0, 0), KDateTime::ClockTime);
+  const KDateTime intervalEnd = start.addDays(days);
+  const KDateTime intervalStart = start.addDays(-days);
+
+  KCalCore::Event::Ptr event(new KCalCore::Event());
+  event->setUid("event");
+  event->setDtStart(start);
+  event->setDtEnd( start.addDays( 1 ) );
+  event->setAllDay( true );
+  event->setSummary( "Event2 Summary" );
+
+  event->recurrence()->setDaily( 1 );
+
+  QList<KDateTime> expectedEventOccurrences;
+  for (int i = 0; i < days; ++i) {
+    expectedEventOccurrences << start.addDays(i);
+  }
+
+  const DateTimeList timesInInterval = event->recurrence()->timesInInterval(intervalStart, intervalEnd);
+  foreach (const KDateTime &dt, timesInInterval) {
+    QCOMPARE(expectedEventOccurrences.removeAll(dt), 1);
+  }
+
+  QCOMPARE(expectedEventOccurrences.size(), 0);
+}
