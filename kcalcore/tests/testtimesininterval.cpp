@@ -3,6 +3,7 @@
 
   Copyright (C) 2010 Klarälvdalens Datakonsult AB, a KDAB Group company <info@kdab.net>
   Author: Sergio Martins <sergio.martins@kdab.com>
+  Copyright (C) 2019 Open Mobile Platform LLC
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Library General Public
@@ -19,6 +20,7 @@
   the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
   Boston, MA 02110-1301, USA.
 */
+
 #include "testtimesininterval.h"
 #include "../event.h"
 
@@ -177,6 +179,58 @@ void TimesInIntervalTest::testDailyRecurrenceDtStart()
   }
 
   const DateTimeList timesInInterval = event->recurrence()->timesInInterval(intervalStart, intervalEnd);
+  foreach (const KDateTime &dt, timesInInterval) {
+    QCOMPARE(expectedEventOccurrences.removeAll(dt), 1);
+  }
+
+  QCOMPARE(expectedEventOccurrences.size(), 0);
+}
+
+//Test that the recurrence dtStart is used for calculation and not the interval start date
+void TimesInIntervalTest::testWeeklyDayOfWeekRecurrenceDtStart()
+{
+  // Create an all-day event which occurs every weekday of every week,
+  // starting from Friday the 11th of October.
+  KCalCore::Event::Ptr event = KCalCore::Event::Ptr(new KCalCore::Event());
+  event->startUpdates();
+  event->setUid("event");
+  event->setLocation(QStringLiteral("Test location"));
+  event->setAllDay(true);
+  event->setDescription(QStringLiteral("Test description"));
+  event->setDtStart(KDateTime::fromString(QStringLiteral("2019-10-11T00:00:00+10:00")));
+  event->setDtEnd(KDateTime::fromString(QStringLiteral("2019-10-12T00:00:00+10:00")));
+  event->setSummary(QStringLiteral("Test event summary"));
+  event->setCategories(QStringList() << QStringLiteral("Category One"));
+
+  RecurrenceRule * const rule = new RecurrenceRule();
+  rule->setRecurrenceType(RecurrenceRule::rWeekly);
+  rule->setStartDt(event->dtStart());
+  rule->setFrequency(1);
+  rule->setByDays(QList<RecurrenceRule::WDayPos>() << RecurrenceRule::WDayPos(0, 1)   // monday
+                                                   << RecurrenceRule::WDayPos(0, 2)   // tuesday
+                                                   << RecurrenceRule::WDayPos(0, 3)   // wednesday
+                                                   << RecurrenceRule::WDayPos(0, 4)   // thursday
+                                                   << RecurrenceRule::WDayPos(0, 5)); // friday
+
+  event->recurrence()->addRRule(rule);
+  event->endUpdates();
+
+  // Expand the events and within a wider interval, but ensure that the
+  // expansion does not include e.g. Wednesday the 9th of October.
+  const int days = 7;
+  const DateTimeList timesInInterval = event->recurrence()->timesInInterval(
+          event->dtStart().addDays(-days),
+          event->dtEnd().addDays(days));
+
+  QList<KDateTime> expectedEventOccurrences;
+  for (int i = 0; i <= days; ++i) {
+    // skip the saturday and sunday as those should not be expected
+    if (i != 1 && i != 2) {
+      expectedEventOccurrences << event->dtStart().addDays(i);
+    }
+  }
+
+  QCOMPARE(expectedEventOccurrences.size(), timesInInterval.size());
   foreach (const KDateTime &dt, timesInInterval) {
     QCOMPARE(expectedEventOccurrences.removeAll(dt), 1);
   }

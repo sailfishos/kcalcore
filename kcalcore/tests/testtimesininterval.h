@@ -34,6 +34,7 @@ class TimesInIntervalTest : public QObject
     void testSubDailyRecurrence2();
     void testSubDailyRecurrenceIntervalLimits();
     void testDailyRecurrenceDtStart();
+    void testWeeklyDayOfWeekRecurrenceDtStart();
 };
 
 #endif
