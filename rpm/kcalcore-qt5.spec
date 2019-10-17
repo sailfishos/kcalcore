@@ -29,13 +29,13 @@ Requires:   %{name} = %{version}-%{release}
 This package contains the files necessary to develop
 applications using kcalcore
 
-%package tests
-Summary:    Unit tests for kcalcore
-Group:      Development/Libraries
-Requires:   %{name} = %{version}-%{release}
-
-%description tests
-This package contains unit tests for kcalcore.
+#%package tests
+#Summary:    Unit tests for kcalcore
+#Group:      Development/Libraries
+#Requires:   %{name} = %{version}-%{release}
+#
+#%description tests
+#This package contains unit tests for kcalcore.
 
 %prep
 %setup -q -n %{name}-%{version}
@@ -62,7 +62,7 @@ rm -rf %{buildroot}
 %{_libdir}/libkcalcoren-qt5.so
 %{_libdir}/pkgconfig/*.pc
 
-%files tests
-%defattr(-,root,root,-)
-/opt/tests/kcalcore-qt5/tst_timesininterval
-%dir /opt/tests/kcalcore-qt5
+#%files tests
+#%defattr(-,root,root,-)
+#/opt/tests/kcalcore-qt5/tst_timesininterval
+#%dir /opt/tests/kcalcore-qt5
