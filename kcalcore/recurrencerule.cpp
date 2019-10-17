@@ -1771,10 +1771,12 @@ DateTimeList RecurrenceRule::timesInInterval( const KDateTime &dtStart,
     }
     KDateTime dt = start.addSecs( offsetFromNextOccurrence );
     if ( dt <= enddt ) {
-      int numberOfOccurrencesWithinInterval = static_cast<int>( dt.secsTo_long( enddt ) / d->mTimedRepetition ) + 1;
-      // limit n by a sane value else we can "explode".
-      numberOfOccurrencesWithinInterval = qMin( numberOfOccurrencesWithinInterval, LOOP_LIMIT );
-      for ( int i = 0;  i < numberOfOccurrencesWithinInterval; dt = dt.addSecs( d->mTimedRepetition ), ++i ) {
+      quint64 numberOfOccurrencesWithinInterval = ( dt.secsTo_long( enddt ) / d->mTimedRepetition ) + 1;
+      // limit numberOfOccurrencesWithinInterval by a sane value else we can "explode".
+      numberOfOccurrencesWithinInterval = numberOfOccurrencesWithinInterval < LOOP_LIMIT
+                                        ? numberOfOccurrencesWithinInterval
+                                        : LOOP_LIMIT;
+      for ( quint64 i = 0;  i < numberOfOccurrencesWithinInterval; dt = dt.addSecs( d->mTimedRepetition ), ++i ) {
         result += dt;
       }
     }
