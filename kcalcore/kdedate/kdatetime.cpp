@@ -1020,6 +1020,17 @@ KDateTime KDateTime::toTimeSpec(const Spec &spec) const
     return KDateTime(d->toUtc(), spec);
 }
 
+KDateTime KDateTime::asTimeSpec(const Spec &spec) const
+{
+    if (spec.type() == KDateTime::ClockTime) {
+        return KDateTime(date(), time(), KDateTime::ClockTime);
+    } else if (isClockTime()) {
+        return KDateTime(date(), time(), spec);
+    } else {
+        return toTimeSpec(spec);
+    }
+}
+
 uint KDateTime::toTime_t() const
 {
     QDateTime qdt = d->toUtc();

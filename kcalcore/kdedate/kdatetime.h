@@ -845,6 +845,26 @@ class KDECORE_EXPORT KDateTime //krazy:exclude=dpointer (implicitly shared)
     KDateTime toTimeSpec(const KDateTime &dt) const;
 
     /**
+     * Returns the time in the specified time specification.
+     *
+     * If the instance is in clock time, no conversion to
+     * local time is performed, but instead the given
+     * time spec is directly applied to the time as-is.
+     *
+     * If the spec is clock time, no conversion to
+     * local time is performed, but instead the instance's
+     * time will be returned directly with clock time spec.
+     *
+     * If neither the instance nor the spec are clock time,
+     * then this function will return a new time which has
+     * been converted as via toTimeSpec().
+     *
+     * @param spec new time specification
+     * @return converted time
+     */
+    KDateTime asTimeSpec(const Spec &spec) const;
+
+    /**
      * Converts the time to a UTC time, measured in seconds since 00:00:00 UTC
      * 1st January 1970 (as returned by time(2)).
      *

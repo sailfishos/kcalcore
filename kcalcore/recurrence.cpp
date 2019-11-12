@@ -1005,11 +1005,26 @@ DateTimeList Recurrence::timesInInterval( const KDateTime &start, const KDateTim
   extimes += d->mExDateTimes;
   extimes.sortUnique();
 
-  int st = 0;
-  for ( i = 0, count = extimes.count();  i < count;  ++i ) {
-    int j = times.removeSorted( extimes[i], st );
-    if ( j >= 0 ) {
-      st = j;
+  bool remove = false;
+  for ( DateTimeList::iterator it = times.begin(); it != times.end(); ) {
+    remove = false;
+    for ( DateTimeList::iterator exIt = extimes.begin(); exIt != extimes.end(); ++exIt) {
+      const KDateTime occurrenceInExpansionTz = KDateTime(it->date(), it->time(), start.timeSpec());
+      const KDateTime occurrenceConvertedToExceptionTz = occurrenceInExpansionTz.toTimeSpec(exIt->timeSpec());
+      if ((!exIt->isClockTime() && !it->isClockTime() && (*exIt == *it || it->toTimeSpec(exIt->timeSpec()) == *exIt))
+          || (exIt->isClockTime() && exIt->date() == it->date() && exIt->time() == it->time())
+          || (!exIt->isClockTime() && it->isClockTime() // KDateTime operator==() is broken, so do the expansion and comparison manually...
+              && ((start.timeSpec() == exIt->timeSpec() && occurrenceInExpansionTz.date() == exIt->date() && occurrenceInExpansionTz.time() == exIt->time())
+                   || (occurrenceConvertedToExceptionTz.date() == exIt->date() && occurrenceConvertedToExceptionTz.time() == exIt->time())))) {
+        exIt = extimes.erase(exIt);
+        remove = true;
+        break;
+      }
+    }
+    if (remove) {
+      it = times.erase(it);
+    } else {
+      ++it;
     }
   }
 

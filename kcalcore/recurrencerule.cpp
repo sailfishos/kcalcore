@@ -1740,8 +1740,8 @@ KDateTime RecurrenceRule::getNextDate( const KDateTime &preDate ) const
 DateTimeList RecurrenceRule::timesInInterval( const KDateTime &dtStart,
                                               const KDateTime &dtEnd ) const
 {
-  KDateTime start = dtStart.toTimeSpec( d->mDateStart.timeSpec() );
-  KDateTime end = dtEnd.toTimeSpec( d->mDateStart.timeSpec() );
+  KDateTime start = dtStart.asTimeSpec( d->mDateStart.timeSpec() );
+  KDateTime end = dtEnd.asTimeSpec( d->mDateStart.timeSpec() );
   DateTimeList result;
   if ( end < d->mDateStart ) {
     return result;    // before start of recurrence
