@@ -30,6 +30,51 @@
 
 using namespace KCalCore;
 
+namespace KCalCore {
+template <>
+int SortableList<KDateTime>::findSorted( const KDateTime &value, int start ) const
+{
+  // Do a binary search to find the item == value
+  const KDateTime lzValue = value.isDateOnly()
+                          ? KDateTime(value.date(), QTime(0, 0), value.timeSpec()).toLocalZone()
+                          : value.toLocalZone();
+  int st = start - 1;
+  int end = count();
+  while ( end - st > 1 ) {
+    int i = ( st + end ) / 2;
+    const KDateTime dt(at(i));
+    if (value.isClockTime()) {
+        if (value.date() < dt.date() || (value.date() == dt.date() && value.time() < dt.time())) {
+            end = i;
+        } else {
+            st = i;
+        }
+    } else if (dt.isClockTime()) {
+        if (lzValue.date() < dt.date() || (lzValue.date() == dt.date() && lzValue.time() < dt.time())) {
+            end = i;
+        } else {
+            st = i;
+        }
+    } else if ( value < at( i ) ) {
+      end = i;
+    } else {
+      st = i;
+    }
+  }
+  if (start >= end) {
+      return -1;
+  }
+  const KDateTime dt(at(st));
+  if (value.isClockTime()) {
+      return (value.date() == dt.date() && value.time() == dt.time()) ? st : -1;
+  } else if (dt.isClockTime()) {
+      return (lzValue.date() == dt.date() && lzValue.time() == dt.time()) ? st : -1;
+  } else  {
+      return (value == dt) ? st : -1;
+  }
+}
+}
+
 //@cond PRIVATE
 class KCalCore::Recurrence::Private
 {

@@ -237,3 +237,91 @@ void TimesInIntervalTest::testWeeklyDayOfWeekRecurrenceDtStart()
 
   QCOMPARE(expectedEventOccurrences.size(), 0);
 }
+
+void TimesInIntervalTest::testClockTimeHandlingAllDay()
+{
+  // Create an event which occurs every weekday of every week,
+  // starting from Friday the 11th of October, and lasts for two weeks,
+  // with three exception datetimes (only two of which will apply).
+  KDateTime::Spec expansionSpec(KDateTime::Spec::LocalZone());
+  KDateTime::Spec exceptionSpec(expansionSpec.timeZone().name().contains("Toronto", Qt::CaseInsensitive)
+                                ? KSystemTimeZones::zone(QStringLiteral("Pacific/Midway"))
+                                : KSystemTimeZones::zone(QStringLiteral("America/Toronto")));
+  KCalCore::Event::Ptr event = KCalCore::Event::Ptr(new KCalCore::Event());
+  event->setAllDay(true);
+  event->setDtStart(KDateTime(QDate(2019, 10, 11), KDateTime::ClockTime));
+
+  RecurrenceRule * const rule = new RecurrenceRule();
+  rule->setRecurrenceType(RecurrenceRule::rDaily);
+  rule->setStartDt(event->dtStart());
+  rule->setFrequency(1);
+  rule->setDuration(14);
+  rule->setByDays(QList<RecurrenceRule::WDayPos>() << RecurrenceRule::WDayPos(0, 1)   // monday
+                                                   << RecurrenceRule::WDayPos(0, 2)   // tuesday
+                                                   << RecurrenceRule::WDayPos(0, 3)   // wednesday
+                                                   << RecurrenceRule::WDayPos(0, 4)   // thursday
+                                                   << RecurrenceRule::WDayPos(0, 5)); // friday
+
+  event->recurrence()->addRRule(rule);
+  event->recurrence()->addExDateTime(KDateTime(QDate(2019, 10, 15), KDateTime::ClockTime));
+  event->recurrence()->addExDateTime(KDateTime(QDate(2019, 10, 17), exceptionSpec)); // this one will not apply.
+  event->recurrence()->addExDateTime(KDateTime(QDate(2019, 10, 24), expansionSpec)); // this one will apply.
+
+  // Expand the events and within a wide interval
+  const DateTimeList timesInInterval = event->recurrence()->timesInInterval(
+          KDateTime(QDate(2019, 10, 05), QTime(0, 0), expansionSpec),
+          KDateTime(QDate(2019, 10, 25), QTime(23, 59), expansionSpec));
+
+  // ensure that the expansion does not include weekend days,
+  // nor either of the exception date times.
+  const QList<int> expectedDays { 11, 14, 16, 17, 18, 21, 22, 23, 25 };
+  for (int day : expectedDays) {
+    QVERIFY(timesInInterval.contains(KDateTime(QDate(2019, 10, day), QTime(0, 0), KDateTime::ClockTime)));
+  }
+  QCOMPARE(timesInInterval.size(), expectedDays.size());
+}
+
+void TimesInIntervalTest::testClockTimeHandlingNonAllDay()
+{
+  // Create an event which occurs every weekday of every week,
+  // starting from Friday the 11th of October, from 12 pm until 1 pm, clock time,
+  // and lasts for two weeks, with three exception datetimes,
+  // (only two of which will apply).
+  KDateTime::Spec expansionSpec(KDateTime::Spec::LocalZone());
+  KDateTime::Spec exceptionSpec(expansionSpec.timeZone().name().contains("Toronto", Qt::CaseInsensitive)
+                                ? KSystemTimeZones::zone(QStringLiteral("Pacific/Midway"))
+                                : KSystemTimeZones::zone(QStringLiteral("America/Toronto")));
+  KCalCore::Event::Ptr event = KCalCore::Event::Ptr(new KCalCore::Event());
+  event->setAllDay(false);
+  event->setDtStart(KDateTime(QDate(2019, 10, 11), QTime(12, 0), KDateTime::ClockTime));
+  event->setDtEnd(KDateTime(QDate(2019, 10, 11), QTime(13, 0), KDateTime::ClockTime));
+
+  RecurrenceRule * const rule = new RecurrenceRule();
+  rule->setRecurrenceType(RecurrenceRule::rDaily);
+  rule->setStartDt(event->dtStart());
+  rule->setFrequency(1);
+  rule->setDuration(14);
+  rule->setByDays(QList<RecurrenceRule::WDayPos>() << RecurrenceRule::WDayPos(0, 1)   // monday
+                                                   << RecurrenceRule::WDayPos(0, 2)   // tuesday
+                                                   << RecurrenceRule::WDayPos(0, 3)   // wednesday
+                                                   << RecurrenceRule::WDayPos(0, 4)   // thursday
+                                                   << RecurrenceRule::WDayPos(0, 5)); // friday
+
+  event->recurrence()->addRRule(rule);
+  event->recurrence()->addExDateTime(KDateTime(QDate(2019, 10, 15), QTime(12, 0), KDateTime::ClockTime));
+  event->recurrence()->addExDateTime(KDateTime(QDate(2019, 10, 17), QTime(12, 0), exceptionSpec)); // this one will not apply.
+  event->recurrence()->addExDateTime(KDateTime(QDate(2019, 10, 24), QTime(12, 0), expansionSpec).toTimeSpec(exceptionSpec)); // this one will apply.
+
+  // Expand the events and within a wide interval
+  const DateTimeList timesInInterval = event->recurrence()->timesInInterval(
+          KDateTime(QDate(2019, 10, 05), QTime(0, 0), expansionSpec),
+          KDateTime(QDate(2019, 10, 25), QTime(23, 59), expansionSpec));
+
+  // ensure that the expansion does not include weekend days,
+  // nor either of the exception date times.
+  const QList<int> expectedDays { 11, 14, 16, 17, 18, 21, 22, 23, 25 };
+  for (int day : expectedDays) {
+    QVERIFY(timesInInterval.contains(KDateTime(QDate(2019, 10, day), QTime(12, 0), KDateTime::ClockTime)));
+  }
+  QCOMPARE(timesInInterval.size(), expectedDays.size());
+}
