@@ -1044,6 +1044,10 @@ ICalTimeZone ICalTimeZoneSource::parse( MSTimeZone *tz, ICalTimeZones &zones )
   }
   const ICalTimeZone oldzone = zones.zone( zone );
   if ( oldzone.isValid() ) {
+    const QDateTime currDateTime = QDateTime::currentDateTimeUtc();
+    if ( zone.offsetAtUtc(currDateTime) != oldzone.offsetAtUtc(currDateTime) ) {
+      return zone; // use the new zone, as its offset data is what the client wants.
+    }
     // A similar zone already exists in the collection, so don't add this
     // new zone, return old zone instead.
     return oldzone;
