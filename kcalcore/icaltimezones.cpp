@@ -569,7 +569,7 @@ ICalTimeZoneData::ICalTimeZoneData( const KTimeZoneData &rhs,
                               transits.at( i - 1 ).phase().utcOffset() :
                               rhs.previousUtcOffset();
       const KTimeZone::Phase phase = transits.at( i ).phase();
-      if ( phase.utcOffset() == preOffset ) {
+      if ( phase.utcOffset() == preOffset && trcount > 1 ) {
         transitionsDone[i] = true;
         while ( ++i < trcount ) {
           if ( transitionsDone[i] ||
@@ -1099,6 +1099,11 @@ ICalTimeZone ICalTimeZoneSource::parse( MSTimeZone *tz )
     tz->StandardDate, standardPhase, prevOffset, transitions );
   ICalTimeZoneSourcePrivate::parseTransitions(
     tz->DaylightDate, daylightPhase, prevOffset, transitions );
+  // If there is no transition, the initial offset to UTC will not be created,
+  // force a transition to the first phase at the UNIX origin of time.
+  if ( transitions.isEmpty() && !phases.isEmpty() ) {
+    transitions += KTimeZone::Transition(QDateTime(QDate(1970, 1, 1)), phases.first());
+  }
 
   qSort( transitions );
   kdata.setTransitions( transitions );
