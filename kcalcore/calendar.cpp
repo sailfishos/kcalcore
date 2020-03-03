@@ -513,6 +513,12 @@ bool Calendar::isVisible( const Incidence::Ptr &incidence ) const
   return rv;
 }
 
+bool Calendar::isVisible( const QString &notebook ) const
+{
+    QHash<QString, bool>::ConstIterator it = d->mNotebooks.find(notebook);
+    return (it != d->mNotebooks.constEnd()) ? *it : true;
+}
+
 void Calendar::clearNotebookAssociations()
 {
   d->mNotebookIncidences.clear();
