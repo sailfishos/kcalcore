@@ -570,6 +570,13 @@ class KCALCORE_EXPORT Calendar : public QObject, public CustomProperties,
     bool isVisible( const Incidence::Ptr &incidence ) const;
 
     /**
+      Check if notebook is visible.
+      @param notebook notebook uid.
+      @return true if notebook is visible, false otherwise
+    */
+    bool isVisible( const QString &notebook ) const;
+
+    /**
       List all notebook incidences in the memory.
 
       @param notebook is the notebook uid.
