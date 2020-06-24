@@ -2,9 +2,8 @@ Name:       kcalcore-qt5
 Summary:    Port of KDE kcalcore calendar library
 Version:    4.10.2
 Release:    1
-Group:      System/Libraries
 License:    LGPLv2
-URL:        https://github.com/mer-packages/kcalcore
+URL:        https://git.sailfishos.org/mer-core/kcalcore
 Source0:    %{name}-%{version}.tar.bz2
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
@@ -22,7 +21,6 @@ Port of KDE kcalcore calendar library
 
 %package devel
 Summary:    Development files for kcalcore
-Group:      Development/Libraries
 Requires:   %{name} = %{version}-%{release}
 
 %description devel

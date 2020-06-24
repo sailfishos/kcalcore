@@ -21,7 +21,7 @@ equals(QT_MAJOR_VERSION, 5) {
 
 QT += dbus
 
-target.path = $$INSTALL_ROOT/usr/lib
+target.path = $$INSTALL_ROOT$$[QT_INSTALL_LIBS]
 equals(QT_MAJOR_VERSION, 4): headers.path += $$INSTALL_ROOT/usr/include/kcalcoren
 equals(QT_MAJOR_VERSION, 5): headers.path += $$INSTALL_ROOT/usr/include/kcalcoren-qt5
 headers.files += *.h \
@@ -39,7 +39,7 @@ headers.files += *.h \
     klibport/KUrl \
     klibport/*.h
 
-pkgconfig.path = $$INSTALL_ROOT/usr/lib/pkgconfig
+pkgconfig.path = $$INSTALL_ROOT$$[QT_INSTALL_LIBS]/pkgconfig
 equals(QT_MAJOR_VERSION, 4): pkgconfig.files = ../libkcalcoren.pc
 equals(QT_MAJOR_VERSION, 5): pkgconfig.files = ../libkcalcoren-qt5.pc
 
