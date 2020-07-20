@@ -159,8 +159,12 @@ void CustomProperties::setNonKDECustomProperty( const QByteArray &name, const QS
     return;
   }
   customPropertyUpdate();
-  d->mProperties[name] = value;
-  d->mPropertyParameters[name] = parameters;
+  if (d->isVolatileProperty( name )) {
+      d->mVolatileProperties[name] = value;
+  } else {
+      d->mProperties[name] = value;
+      d->mPropertyParameters[name] = parameters;
+  }
   customPropertyUpdated();
 }
 void CustomProperties::removeNonKDECustomProperty( const QByteArray &name )
