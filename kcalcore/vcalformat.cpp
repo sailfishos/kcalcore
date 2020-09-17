@@ -2670,7 +2670,8 @@ void VCalFormat::writeCustomProperties( VObject *o, const Incidence::Ptr &i )
   const QMap<QByteArray, QString> custom = i->customProperties();
   for ( QMap<QByteArray, QString>::ConstIterator c = custom.begin();
         c != custom.end();  ++c ) {
-    if ( d->mManuallyWrittenExtensionFields.contains( c.key() ) ) {
+    if ( d->mManuallyWrittenExtensionFields.contains( c.key() ) ||
+         c.key().startsWith( "X-KDE-VOLATILE" ) ) {
       continue;
     }
 
