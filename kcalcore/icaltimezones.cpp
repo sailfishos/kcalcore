@@ -711,7 +711,6 @@ ICalTimeZoneData::ICalTimeZoneData( const KTimeZoneData &rhs,
             icalrecurrencetype r;
             icalrecurrencetype_clear( &r );
             r.freq = ICAL_YEARLY_RECURRENCE;
-            r.count = ( year >= 2030 ) ? 0 : times.count() - 1;
             r.by_month[0] = month;
             if ( rule & DAY_OF_MONTH ) {
               r.by_month_day[0] = dayOfMonth;
@@ -720,6 +719,7 @@ ICalTimeZoneData::ICalTimeZoneData( const KTimeZoneData &rhs,
             } else if ( rule & LAST_WEEKDAY_OF_MONTH ) {
               r.by_day[0] = -( dayOfWeek % 7 + 1 ) - ( nthFromEnd * 8 );   // Sunday = 1
             }
+            r.until = writeLocalICalDateTime(times.takeAt(times.size() - 1), preOffset);
             icalproperty *prop = icalproperty_new_rrule( r );
             if ( useNewRRULE ) {
               // This RRULE doesn't start from the phase start date, so set it into
