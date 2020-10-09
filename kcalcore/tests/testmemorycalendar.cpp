@@ -24,6 +24,7 @@
 #include "../memorycalendar.h"
 
 #include <kdebug.h>
+#include <ksystemtimezone.h>
 
 #include <unistd.h>
 
@@ -171,4 +172,45 @@ void MemoryCalendarTest::testRelationsCrash()
   }
 */
   cal->close();
+}
+
+void MemoryCalendarTest::testRawEventsForDate()
+{
+    // We're checking that events at a date in a given time zone
+    // are properly returned for the day after / before if
+    // the calendar is for another time zone.
+    MemoryCalendar::Ptr cal(new MemoryCalendar(KDateTime::UTC));
+
+    Event::Ptr event = Event::Ptr(new Event());
+    event->setDtStart(KDateTime(QDate(2019, 10, 29), QTime(1, 30),
+                                KSystemTimeZones::zone("Asia/Ho_Chi_Minh")));
+
+    QVERIFY(cal->addEvent(event));
+
+    QCOMPARE(cal->rawEventsForDate(QDate(2019, 10, 28)).count(), 1);
+    QCOMPARE(cal->rawEventsForDate(QDate(2019, 10, 29),
+                                   KSystemTimeZones::zone("Asia/Ho_Chi_Minh")).count(), 1);
+
+    cal->setTimeZoneId("Asia/Ho_Chi_Minh");
+    QCOMPARE(cal->rawEventsForDate(QDate(2019, 10, 29)).count(), 1);
+    QCOMPARE(cal->rawEventsForDate(QDate(2019, 10, 28),
+                                   KDateTime::UTC).count(), 1);
+
+    event->setDtStart(KDateTime(QDate(2019, 10, 30), QTime(23, 00),
+                                KDateTime::UTC));
+    QCOMPARE(cal->rawEventsForDate(QDate(2019, 10, 31)).count(), 1);
+    QCOMPARE(cal->rawEventsForDate(QDate(2019, 10, 30),
+                                   KDateTime::UTC).count(), 1);
+
+    QVERIFY(cal->deleteIncidence(event));
+    QCOMPARE(cal->rawEventsForDate(QDate(2019, 10, 31)).count(), 0);
+
+    // Multi-days events are treated differently.
+    event->setDtEnd(KDateTime(QDate(2019, 10, 31), QTime(23, 00),
+                              KDateTime::UTC));
+    QVERIFY(cal->addEvent(event));
+    QCOMPARE(cal->rawEventsForDate(QDate(2019, 10, 31)).count(), 1);
+    QCOMPARE(cal->rawEventsForDate(QDate(2019, 11, 1)).count(), 1);
+
+    cal->close();
 }

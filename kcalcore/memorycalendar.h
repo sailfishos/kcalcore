@@ -68,6 +68,11 @@ class KCALCORE_EXPORT MemoryCalendar : public Calendar
     ~MemoryCalendar();
 
     /**
+      @copydoc Calendar::doSetTimeSpec()
+    */
+    void doSetTimeSpec( const KDateTime::Spec &timeSpec );
+
+    /**
       Clears out the current calendar, freeing all used memory etc. etc.
     */
     void close();

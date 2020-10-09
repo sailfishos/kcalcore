@@ -1,2 +1,2 @@
 TEMPLATE=subdirs
-SUBDIRS+=testtimesininterval.pro
+SUBDIRS+=testtimesininterval.pro testmemorycalendar.pro
