@@ -174,6 +174,55 @@ void MemoryCalendarTest::testRelationsCrash()
   cal->close();
 }
 
+void MemoryCalendarTest::testRawEvents()
+{
+    MemoryCalendar::Ptr cal(new MemoryCalendar(KDateTime::UTC));
+
+    Event::Ptr event = Event::Ptr(new Event());
+    // This event span in 20201011T2330Z - 20201012T2330Z
+    event->setDtStart(KDateTime(QDate(2020, 10, 12), QTime(1, 30),
+                                KSystemTimeZones::zone("Europe/Paris")));
+    event->setDtEnd(KDateTime(QDate(2020, 10, 13), QTime(1, 30),
+                                KSystemTimeZones::zone("Europe/Paris")));
+
+    QVERIFY(cal->addEvent(event));
+
+    // Not full-event inclusive by default, UTC timezone.
+    QCOMPARE(cal->rawEvents(QDate(2020, 10, 1), QDate(2020, 10, 10)).count(), 0);
+    QCOMPARE(cal->rawEvents(QDate(2020, 10, 11), QDate(2020, 10, 11)).count(), 1);
+    QCOMPARE(cal->rawEvents(QDate(2020, 10, 12), QDate(2020, 10, 12)).count(), 1);
+    QCOMPARE(cal->rawEvents(QDate(2020, 10, 13), QDate(2020, 10, 31)).count(), 0);
+    QCOMPARE(cal->rawEvents(QDate(), QDate(2020, 10, 10)).count(), 0);
+    QCOMPARE(cal->rawEvents(QDate(), QDate(2020, 10, 11)).count(), 1);
+    QCOMPARE(cal->rawEvents(QDate(2020, 10, 13), QDate()).count(), 0);
+    QCOMPARE(cal->rawEvents(QDate(2020, 10, 12), QDate()).count(), 1);
+
+    // Changing the time zone we are considering the dates in.
+    QCOMPARE(cal->rawEvents(QDate(2020, 10, 1), QDate(2020, 10, 11), KSystemTimeZones::zone("Europe/Paris")).count(), 0);
+    QCOMPARE(cal->rawEvents(QDate(2020, 10, 12), QDate(2020, 10, 12), KSystemTimeZones::zone("Europe/Paris")).count(), 1);
+    QCOMPARE(cal->rawEvents(QDate(2020, 10, 13), QDate(2020, 10, 13), KSystemTimeZones::zone("Europe/Paris")).count(), 1);
+    QCOMPARE(cal->rawEvents(QDate(2020, 10, 14), QDate(2020, 10, 31), KSystemTimeZones::zone("Europe/Paris")).count(), 0);
+    QCOMPARE(cal->rawEvents(QDate(), QDate(2020, 10, 11), KSystemTimeZones::zone("Europe/Paris")).count(), 0);
+    QCOMPARE(cal->rawEvents(QDate(), QDate(2020, 10, 12), KSystemTimeZones::zone("Europe/Paris")).count(), 1);
+    QCOMPARE(cal->rawEvents(QDate(2020, 10, 14), QDate(), KSystemTimeZones::zone("Europe/Paris")).count(), 0);
+    QCOMPARE(cal->rawEvents(QDate(2020, 10, 13), QDate(), KSystemTimeZones::zone("Europe/Paris")).count(), 1);
+
+    // Full event must be in the span.
+    QCOMPARE(cal->rawEvents(QDate(2020, 10, 1), QDate(2020, 10, 10), KDateTime::Spec(), true).count(), 0);
+    QCOMPARE(cal->rawEvents(QDate(2020, 10, 11), QDate(2020, 10, 11), KDateTime::Spec(), true).count(), 0);
+    QCOMPARE(cal->rawEvents(QDate(2020, 10, 12), QDate(2020, 10, 12), KDateTime::Spec(), true).count(), 0);
+    QCOMPARE(cal->rawEvents(QDate(2020, 10, 11), QDate(2020, 10, 12), KDateTime::Spec(), true).count(), 1);
+    QCOMPARE(cal->rawEvents(QDate(2020, 10, 13), QDate(2020, 10, 31), KDateTime::Spec(), true).count(), 0);
+    QCOMPARE(cal->rawEvents(QDate(), QDate(2020, 10, 10), KDateTime::Spec(), true).count(), 0);
+    QCOMPARE(cal->rawEvents(QDate(), QDate(2020, 10, 11), KDateTime::Spec(), true).count(), 0);
+    QCOMPARE(cal->rawEvents(QDate(), QDate(2020, 10, 12), KDateTime::Spec(), true).count(), 1);
+    QCOMPARE(cal->rawEvents(QDate(2020, 10, 13), QDate(), KDateTime::Spec(), true).count(), 0);
+    QCOMPARE(cal->rawEvents(QDate(2020, 10, 12), QDate(), KDateTime::Spec(), true).count(), 0);
+    QCOMPARE(cal->rawEvents(QDate(2020, 10, 11), QDate(), KDateTime::Spec(), true).count(), 1);
+
+    cal->close();
+}
+
 void MemoryCalendarTest::testRawEventsForDate()
 {
     // We're checking that events at a date in a given time zone
