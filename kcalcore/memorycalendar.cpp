@@ -82,7 +82,7 @@ class KCalCore::MemoryCalendar::Private
      * but i merged them into one (indexed by type) because it simplifies code using
      * it. No need to if else based on type.
      */
-    QMap<IncidenceBase::IncidenceType, QMultiHash<QString, IncidenceBase::Ptr> > mIncidencesForDate;
+    QMap<IncidenceBase::IncidenceType, QMultiHash<QDate, IncidenceBase::Ptr> > mIncidencesForDate;
 
     void insertIncidence( Incidence::Ptr incidence );
 
@@ -117,6 +117,23 @@ MemoryCalendar::~MemoryCalendar()
   delete d;
 }
 
+void MemoryCalendar::doSetTimeSpec( const KDateTime::Spec &timeSpec )
+{
+  // Reset date based hashes before storing for the new zone.
+  for (auto &table : d->mIncidencesForDate) {
+    table.clear();
+  }
+
+  for (auto &table : d->mIncidences) {
+    for (const auto &incidence : table) {
+      const KDateTime dt = incidence->dateTime(Incidence::RoleCalendarHashing);
+      if (dt.isValid()) {
+        d->mIncidencesForDate[incidence->type()].insert(dt.toTimeSpec(timeSpec).date(), incidence);
+      }
+    }
+  }
+}
+
 void MemoryCalendar::close()
 {
   setObserversEnabled( false );
@@ -148,7 +165,7 @@ bool MemoryCalendar::deleteIncidence( const Incidence::Ptr &incidence )
 
     const KDateTime dt = incidence->dateTime( Incidence::RoleCalendarHashing );
     if ( dt.isValid() ) {
-      d->mIncidencesForDate[type].remove( dt.date().toString(), incidence );
+      d->mIncidencesForDate[type].remove( dt.toTimeSpec(timeSpec()).date(), incidence );
     }
     // Delete child-incidences.
     if ( !incidence->hasRecurrenceId() ) {
@@ -247,7 +264,7 @@ void MemoryCalendar::Private::insertIncidence( Incidence::Ptr incidence )
     mIncidences[type].insert( uid, incidence );
     const KDateTime dt = incidence->dateTime( Incidence::RoleCalendarHashing );
     if ( dt.isValid() ) {
-      mIncidencesForDate[type].insert( dt.date().toString(), incidence );
+      mIncidencesForDate[type].insert( dt.toTimeSpec(q->timeSpec()).date(), incidence );
     }
 
   } else {
@@ -385,10 +402,9 @@ Todo::List MemoryCalendar::rawTodosForDate( const QDate &date ) const
   Todo::Ptr t;
 
   KDateTime::Spec ts = timeSpec();
-  const QString dateStr = date.toString();
-  QMultiHash<QString, IncidenceBase::Ptr >::const_iterator it =
-    d->mIncidencesForDate[Incidence::TypeTodo].constFind( dateStr );
-  while ( it != d->mIncidencesForDate[Incidence::TypeTodo].constEnd() && it.key() == dateStr ) {
+  QMultiHash<QDate, IncidenceBase::Ptr >::const_iterator it =
+    d->mIncidencesForDate[Incidence::TypeTodo].constFind( date );
+  while ( it != d->mIncidencesForDate[Incidence::TypeTodo].constEnd() && it.key() == date ) {
     t = it.value().staticCast<Todo>();
     todoList.append( t );
     ++it;
@@ -515,7 +531,7 @@ void MemoryCalendar::incidenceUpdate( const QString &uid, const KDateTime &recur
     const KDateTime dt = inc->dateTime( Incidence::RoleCalendarHashing );
 
     if ( dt.isValid() ) {
-      d->mIncidencesForDate[type].remove( dt.date().toString(), inc );
+      d->mIncidencesForDate[type].remove( dt.toTimeSpec(timeSpec()).date(), inc );
     }
   }
 }
@@ -535,7 +551,7 @@ void MemoryCalendar::incidenceUpdated( const QString &uid, const KDateTime &recu
     const KDateTime dt = inc->dateTime( Incidence::RoleCalendarHashing );
 
     if ( dt.isValid() ) {
-      d->mIncidencesForDate[type].insert( dt.date().toString(), inc );
+      d->mIncidencesForDate[type].insert( dt.toTimeSpec(timeSpec()).date(), inc );
     }
 
     notifyIncidenceChanged( inc );
@@ -556,16 +572,20 @@ Event::List MemoryCalendar::rawEventsForDate( const QDate &date,
     return eventList;
   }
 
+  if (timespec.isValid() && timespec != timeSpec()) {
+    eventList = rawEvents(date, date, timespec, false);
+    return Calendar::sortEvents(eventList, sortField, sortDirection);
+  }
+
   Event::Ptr ev;
 
   // Find the hash for the specified date
-  const QString dateStr = date.toString();
-  QMultiHash<QString, IncidenceBase::Ptr >::const_iterator it =
-    d->mIncidencesForDate[Incidence::TypeEvent].constFind( dateStr );
+  QMultiHash<QDate, IncidenceBase::Ptr >::const_iterator it =
+    d->mIncidencesForDate[Incidence::TypeEvent].constFind( date );
   // Iterate over all non-recurring, single-day events that start on this date
   KDateTime::Spec ts = timespec.isValid() ? timespec : timeSpec();
   KDateTime kdt( date, ts );
-  while ( it != d->mIncidencesForDate[Incidence::TypeEvent].constEnd() && it.key() == dateStr ) {
+  while ( it != d->mIncidencesForDate[Incidence::TypeEvent].constEnd() ) {
     ev = it.value().staticCast<Event>();
     KDateTime end( ev->dtEnd().toTimeSpec( ev->dtStart() ) );
     if ( ev->allDay() ) {
@@ -600,7 +620,7 @@ Event::List MemoryCalendar::rawEventsForDate( const QDate &date,
       }
     } else {
       if ( ev->isMultiDay() ) {
-        if ( ev->dtStart().date() <= date && ev->dtEnd().date() >= date ) {
+        if ( ev->dtStart().toTimeSpec(ts).date() <= date && ev->dtEnd().toTimeSpec(ts).date() >= date ) {
           eventList.append( ev );
         }
       }
@@ -628,19 +648,19 @@ Event::List MemoryCalendar::rawEvents( const QDate &start,
     i.next();
     event = i.value().staticCast<Event>();
     KDateTime rStart = event->dtStart();
-    if ( nd < rStart ) {
+    if ( nd.isValid() && nd < rStart ) {
       continue;
     }
-    if ( inclusive && rStart < st ) {
+    if ( inclusive && st.isValid() && rStart < st ) {
       continue;
     }
 
     if ( !event->recurs() ) { // non-recurring events
       KDateTime rEnd = event->dtEnd();
-      if ( rEnd < st ) {
+      if ( st.isValid() && rEnd < st ) {
         continue;
       }
-      if ( inclusive && nd < rEnd ) {
+      if ( inclusive && nd.isValid() && nd < rEnd ) {
         continue;
       }
     } else { // recurring events
@@ -656,10 +676,10 @@ Event::List MemoryCalendar::rawEvents( const QDate &start,
         if ( !rEnd.isValid() ) {
           continue;
         }
-        if ( rEnd < st ) {
+        if ( st.isValid() && rEnd < st ) {
           continue;
         }
-        if ( inclusive && nd < rEnd ) {
+        if ( inclusive && nd.isValid() && nd < rEnd ) {
           continue;
         }
         break;
@@ -796,11 +816,10 @@ Journal::List MemoryCalendar::rawJournalsForDate( const QDate &date ) const
   Journal::List journalList;
   Journal::Ptr j;
 
-  QString dateStr = date.toString();
-  QMultiHash<QString, IncidenceBase::Ptr >::const_iterator it =
-    d->mIncidencesForDate[Incidence::TypeJournal].constFind( dateStr );
+  QMultiHash<QDate, IncidenceBase::Ptr >::const_iterator it =
+    d->mIncidencesForDate[Incidence::TypeJournal].constFind( date );
 
-  while ( it != d->mIncidencesForDate[Incidence::TypeJournal].constEnd() && it.key() == dateStr ) {
+  while ( it != d->mIncidencesForDate[Incidence::TypeJournal].constEnd() && it.key() == date ) {
     j = it.value().staticCast<Journal>();
     journalList.append( j );
     ++it;

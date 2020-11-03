@@ -32,6 +32,8 @@ class MemoryCalendarTest : public QObject
     void testEvents();
     void testIncidences();
     void testRelationsCrash();
+    void testRawEvents();
+    void testRawEventsForDate();
 };
 
 #endif
