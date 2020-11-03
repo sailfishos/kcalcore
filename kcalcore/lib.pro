@@ -2,7 +2,7 @@ TEMPLATE = lib
 equals(QT_MAJOR_VERSION, 4): TARGET = kcalcoren
 equals(QT_MAJOR_VERSION, 5): TARGET = kcalcoren-qt5
 DEPENDPATH += . tests versit klibport kdedate
-INCLUDEPATH += . versit klibport kdedate
+INCLUDEPATH += . versit klibport kdedate /usr/include/libical
 
 VERSION += 4.10.2
 
